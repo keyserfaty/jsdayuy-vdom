@@ -65,5 +65,30 @@ const createElement = node => {
   return $el
 }
 
-const root = document.querySelector('#root')
-root.appendChild(createElement(element))
+// 3. Manejar cambios en los nodos.
+
+const nodeChanged = (node1, node2) =>
+  typeof node1 !== typeof node2 ||
+  typeof node1 === 'string' && node1 !== node2 ||
+  node1.type !== !node2.type
+
+const updateElement = ($parent, newNode, oldNode, index = 0) => {
+  if (!oldNode) {
+    $parent.appendChild(createElement(newNode))
+  } else if (!newNode) {
+    $parent.removeChild($parent.childNodes[index])
+  } else if (nodeChanged(newNode, oldNode)) {
+    $parent.removeChild(createElement(newNode, $parent.childNodes[index]))
+  } else if (newNode.type) {
+    const newLength = newNode.children.length
+    const oldLength = oldNode.childNodes.length
+
+    for (let i = 0; i < newLength || i < oldLength; i++) {
+      updateElement($parent.childNodes[index], newNode.children[i], oldNode.children[i], i)
+    }
+  }
+}
+
+const $root = document.querySelector('#root')
+//$root.appendChild(createElement(element))
+updateElement($root, element)
