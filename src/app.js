@@ -1,3 +1,4 @@
+import { createStore } from './store'
 
 // 1. Crear el árbol de elementos
 /**
@@ -11,12 +12,6 @@ const h = (type, props, ...children) => ({
   props,
   children
 })
-
-const element =
-  h('div', { className: 'danger' },
-    h('div', { className:'danger-child', onClick: () => console.log('holi') }, 'some child with just text'),
-    h('div', { className:'danger-child' }, 'other child with text')
-  )
 
 // 2. Crear función que tranforma este elemento en DOM elements
 const isEventProp = prop =>
@@ -78,7 +73,7 @@ const updateElement = ($parent, newNode, oldNode, index = 0) => {
   } else if (!newNode) {
     $parent.removeChild($parent.childNodes[index])
   } else if (nodeChanged(newNode, oldNode)) {
-    $parent.removeChild(createElement(newNode, $parent.childNodes[index]))
+    $parent.replaceChild(createElement(newNode), $parent.childNodes[index])
   } else if (newNode.type) {
     const newLength = newNode.children.length
     const oldLength = oldNode.childNodes.length
@@ -89,6 +84,44 @@ const updateElement = ($parent, newNode, oldNode, index = 0) => {
   }
 }
 
-const $root = document.querySelector('#root')
-//$root.appendChild(createElement(element))
-updateElement($root, element)
+// 4. Agregar state para manejar cambios
+const initialState = {
+  text: 'This text should change'
+}
+
+const reducer = (state = initialState, action) => {
+  switch (action.type) {
+    case 'UPDATE_TEXT': {
+      return {
+        ...state,
+        text: action.payload.text
+      }
+    }
+
+    default:
+      return state
+  }
+}
+
+const store = createStore(reducer)
+
+const updateText = () => {
+  store.dispatch({ type: 'UPDATE_TEXT', payload: { text: 'Changed!' } })
+}
+
+const element = (props) =>
+  h('div', { className: 'container' },
+    h('button', { className: 'button', onClick: updateText }, 'Click me to update text'),
+    h('div', { className: 'box' }, props.text)
+  )
+
+//** DOM
+const $root = document.getElementById('root');
+
+const initialElement = element(store.getState())
+updateElement($root, initialElement)
+
+store.subscribe(() => {
+  const nextElement = element(store.getState())
+  updateElement($root, nextElement, initialElement)
+})
