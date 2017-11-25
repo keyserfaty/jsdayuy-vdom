@@ -105,18 +105,19 @@ const reducer = (state = initialState, action) => {
 
 const store = createStore(reducer)
 
-const updateText = () => {
-  store.dispatch({ type: 'UPDATE_TEXT', payload: { text: 'Changed!' } })
+const updateText = (e) => {
+  store.dispatch({ type: 'UPDATE_TEXT', payload: { text: e.target.value } })
 }
 
-const element = (props) =>
+const element = props => (
   h('div', { className: 'container' },
-    h('button', { className: 'button', onClick: updateText }, 'Click me to update text'),
-    h('div', { className: 'box' }, props.text)
+    h('input', { type: 'text', onKeyUp: updateText }),
+    h('div', { className: 'text-container' }, props.text)
   )
+)
 
 //** DOM
-const $root = document.getElementById('root');
+const $root = document.querySelector('#root')
 
 const initialElement = element(store.getState())
 updateElement($root, initialElement)
